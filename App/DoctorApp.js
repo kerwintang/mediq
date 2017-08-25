@@ -1,40 +1,19 @@
 import React, { Component } from 'react';
 import { Platform, AppRegistry, StyleSheet, Text, Image, View, TextInput, ListView, TouchableWithoutFeedback } from 'react-native';
 import { connect } from 'react-redux';
-import LoginScreen from './components/LoginScreen.js';
-import HomeScreen from './components/HomeScreen.js';
-import AppointmentScreen from './components/AppointmentScreen.js';
+import LoginScreen from './screens/LoginScreen.js';
+import HomeScreen from './screens/HomeScreen.js';
+import AppointmentScreen from './screens/AppointmentScreen.js';
 import { StackNavigator, addNavigationHelpers } from 'react-navigation';
+import { AppNavigator } from './navigators/AppNavigator';
 
-const FBSDK = require('react-native-fbsdk');
-const {
-  AccessToken
-} = FBSDK;
-
-const AppNavigator = StackNavigator({
-	  Home: {
-	    screen: HomeScreen,
-	  },
-	  Appointment: {
-		screen: AppointmentScreen,
-	  },
-	});
-
-const initialState = AppNavigator.router.getStateForAction(AppNavigator.router.getActionForPathAndParams('Home'));
-
-const navReducer = (state = initialState, action) => {
-	  const nextState = AppNavigator.router.getStateForAction(action, state);
-
-	  // Simply return the original `state` if `nextState` is null or undefined.
-	  return nextState || state;
-};
 
 class DoctorApp extends Component {
 	
 	  constructor(props) {
 		    super(props);
             
-
+				
 	  }
 
 	    render() {
@@ -53,10 +32,11 @@ class DoctorApp extends Component {
 		    });
 
 	    return (
-	    		<AppNavigator navigation={addNavigationHelpers({
+				
+	    		(this.props.username?<AppNavigator navigation={addNavigationHelpers({
 	    	        dispatch: this.props.dispatch,
 	    	        state: this.props.nav
-	    	      })} />
+	    	      })} />:<LoginScreen/>)
 	    );
 	  }
 
@@ -75,12 +55,13 @@ const styles = StyleSheet.create({
 
 const mapStateToProps = state => ({
 	deviceInfo:state.deviceInfo,
-	fbInfo:state.fbInfo,
+	fbInfo:state.sessionStore.fbInfo,
+	username:state.sessionStore.username,
 	nav: state.navStore
 })
 
 const mapDispatchToProps = (dispatch) => ({
-	setFbInfo: (info) => { dispatch({ type: 'LOGIN', fbInfo:info }) }
+	setFbInfo: (info) => { dispatch({ type: 'SET_FB_INFO', fbInfo:info }) }
 })
 
 export default connect(mapStateToProps)(DoctorApp)

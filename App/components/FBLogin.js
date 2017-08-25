@@ -21,9 +21,9 @@ class FBLogin extends Component{
 
 	render() {
 	    return (
-	      <View>
+	      <View style={{position:"absolute", bottom:20}}>
 	        <LoginButton
-	          readPermissions={["public_profile"]}
+	          readPermissions={["public_profile","email"]}
 	          onLoginFinished={
 	            (error, result) => {
 	              if (error) {
@@ -31,12 +31,14 @@ class FBLogin extends Component{
 	              } else if (result.isCancelled) {
 	                alert("Login was cancelled");
 	              } else {
+									this.props.loginSuccessful();
 	                AccessToken.getCurrentAccessToken().then((data) => {
 	                    const { accessToken } = data
+											console.log(accessToken);
 		          		  fetch('https://graph.facebook.com/v2.5/me?fields=email,name,friends&access_token=' + accessToken)
 		          		  .then((response) => response.json())
 		          		  .then((json) => {
-		          		    this.props.setFbInfo(json);
+		          		    this.props.onLogin(json);
 		          		    //this.postFbInfo();
 		          		  })
 		          		  .catch(() => {
@@ -47,7 +49,7 @@ class FBLogin extends Component{
 	              }
 	            }
 	          }
-	          onLogoutFinished={() => this.props.setFbInfo(null) }/>
+	          onLogoutFinished={() => this.props.doLogout() }/>
 	      </View>
 	    );
 	  }
@@ -57,13 +59,14 @@ class FBLogin extends Component{
 const mapStateToProps = state => ({
 	show: state.showAbout,
 	deviceInfo: state.deviceInfo,
-	fbInfo: state.fbInfo,
+	fbInfo: state.sessionStore.fbInfo,
 	location: state.location,
 	host: state.host
 })
 
 const mapDispatchToProps = (dispatch) => ({
-	setFbInfo: (info) => { dispatch({ type: 'LOGIN', info:info }) }
+	doLogout: () => { dispatch({ type: 'LOGOUT' }) },
+	loginSuccessful: () => { dispatch({ type: 'LOGIN_SUCCESSFUL' }) }
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(FBLogin)

@@ -13,10 +13,9 @@ const initialNavState = AppNavigator.router.getStateForAction(
 function NavReducer(state = initialNavState, action) {
   let nextState;
   switch (action.type) {
-    case 'Login':
+    case 'LOGIN_SUCCESSFUL':
       nextState = AppNavigator.router.getStateForAction(
-        NavigationActions.back(),
-        state
+        homeAction
       );
       break;
     case 'Logout':

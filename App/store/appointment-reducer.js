@@ -3,6 +3,8 @@ const defaultState = {
   appointments: [],
   loading: false,
   reload: false,
+  editVitals: false,
+  editNotes: false,
   errors: {}
 }
 
@@ -12,6 +14,18 @@ export default (state=defaultState, action={}) => {
       return {
         ...state,
         appointment: action.appointment
+      }
+    }
+  	case 'EDIT_VITALS': {
+      return {
+        ...state,
+        editVitals: true
+      }
+    }
+  	case 'EDIT_NOTES': {
+      return {
+        ...state,
+        editNotes: true
       }
     }
     case 'FETCH_APPOINTMENTS': {

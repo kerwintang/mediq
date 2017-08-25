@@ -19,15 +19,15 @@ const DumbAppointmentScreen = (props) => (
 			flexDirection:'column',
 			alignItems:'center',
 		}}>
-			<Text style={{fontSize:30}}>Sun., Aug. 13, 2017</Text>
-			<Text>Dr. Apostol</Text>
+			<MediqText style={{fontSize:30}}>Sun., Aug. 13, 2017</MediqText>
+			<MediqText>Dr. Apostol</MediqText>
 		</View>
 		<View style={{
 			flexDirection:'row',
 			alignItems:'center',
 			borderWidth:1
 		}}>
-			<Text>Take medicine 3x a day before bedtime</Text>
+			<MediqText>Take medicine 3x a day before bedtime</MediqText>
 		</View>
 	</View>
 );
