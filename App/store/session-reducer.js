@@ -6,23 +6,15 @@ const defaultState = {
 		fbLoginLoading:false,
 		loginLoading:true,
 		roles: {},
+		hmoList: [],
 		user:{
-			id:1,
-			firstName:"Josephine",
-			lastName:"Apostol",
-			email:"josephineapostol@gmail.com",
-			mobile:"09171111111",
-			schedule:[
-				{day:"Mon", time:"1-4PM", clinic:"Makati Medical Center Rm. 237"},
-				{day:"Tues", time:"1-4PM", clinic:"Makati Medical Center Rm. 237"},
-				{day:"Wed", time:"1-4PM", clinic:"Makati Medical Center Rm. 237"},
-				{day:"Thurs", time:"1-4PM", clinic:"Makati Medical Center Rm. 237"},
-				{day:"Fri", time:"1-4PM", clinic:"Makati Medical Center Rm. 237"},
-				{day:"Sat", time:"1-4PM", clinic:"Makati Medical Center Rm. 237"}
-			]
+		},
+		profile:{
 		}
 	},
 	username:null,
+	token:null,
+	hmoList: [],
 	roles:{}
 }
 
@@ -30,14 +22,18 @@ export default function sessionReducer(state = defaultState.session, action) {
   switch(action.type) {
 	  case 'SET_FB_INFO':
 	  	return { ...state, fbInfo:action.fbInfo, username:action.fbInfo.email }
+		  case 'SET_TOKEN':
+	  	return { ...state, token:action.token }
 		  case 'LOGIN_SUCCESSFUL':
 	  	return { ...state, loginLoading:true }
 		  case 'HIDE_LOGIN_LOADING':
 	  	return { ...state, loginLoading:false }
+	case 'SET_HMO_LIST':
+	  	return { ...state, hmoList:action.hmoList }
 	  case 'SIGNUP':
 	  	return { ...state, signup:true}
 	  case 'LOGIN': 
-	  	return { ...state, username:action.user.email, user:action.user, loggedIn: true}
+	  	return { ...state, username:action.user.username, user:action.user, profile:action.profile, loggedIn: true}
 		case 'FB_LOGIN': 
 	  	return { ...state, fbInfo:action.fbInfo, username:action.user.email, user:action.user, loggedIn: true}
 	  case 'LOGOUT': 

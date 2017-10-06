@@ -3,8 +3,8 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import LoginScreen from '../screens/LoginScreen.js';
 import HomeScreen from '../screens/HomeScreen.js';
-import PatientScreen from '../screens/PatientScreen.js';
-import DoctorScreen from '../screens/DoctorScreen.js';
+import ProfileScreen from '../screens/ProfileScreen.js';
+import ScheduleScreen from '../screens/ScheduleScreen.js';
 import AppointmentScreen from '../screens/AppointmentScreen.js';
 import { StackNavigator, addNavigationHelpers } from 'react-navigation';
 
@@ -15,11 +15,11 @@ export const AppNavigator = StackNavigator({
 			Home: {
 				screen: HomeScreen,
 			},
-			Patient: {
-				screen: PatientScreen,
+			Profile: {
+				screen: ProfileScreen,
 			},
-			Doctor: {
-				screen: DoctorScreen,
+			Schedule: {
+				screen: ScheduleScreen,
 			},
 				Appointment: {
 		screen: AppointmentScreen,

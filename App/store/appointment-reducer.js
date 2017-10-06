@@ -1,33 +1,77 @@
 
 const defaultState = {
   appointments: [],
+  procedures: [],
   loading: false,
   reload: false,
-  editVitals: false,
-  editNotes: false,
+  showAppointmentForm:false,
+  showProfileForm:false,
+  clinicSchedules:[],
+  showProcedureModal:false,
   errors: {}
 }
 
 export default (state=defaultState, action={}) => {
   switch (action.type) {
+  	case 'SET_CLINIC_SCHEDULES': {
+      return {
+        ...state,
+        clinicSchedules: action.clinicSchedules
+      }
+    }
   	case 'SHOW_APPOINTMENT': {
       return {
         ...state,
-        appointment: action.appointment
+        appointment: action.appointment,
+        showProfileForm:false
       }
     }
-  	case 'EDIT_VITALS': {
+
+    case 'ADD_APPOINTMENT':{
+      var appointments = [];
+      for(var i=0;i<state.appointments;i++){
+        appointments.push(state.appointments[i]);
+      }
+      appointments.push(action.appointment);
       return {
         ...state,
-        editVitals: true
-      }
+        appointments: appointments
+      }     
     }
-  	case 'EDIT_NOTES': {
+
+    case 'SEARCH_PROCEDURE':{
       return {
         ...state,
-        editNotes: true
+        showProcedureModal:true
       }
     }
+
+    case 'SET_PROCEDURES':{
+      return {
+        ...state,
+        procedures:action.procedures
+      }
+    }
+
+    case 'ADD_PROCEDURE':{
+      var procedures = [];
+      for(var i=0;i<state.procedures.length;i++){
+        procedures.push(state.procedures[i]);
+      }
+      procedures.push(action.procedure);
+      return {
+        ...state,
+        procedures: procedures
+      }     
+    }
+
+    case 'CLOSE_MODAL': {
+      return {
+        ...state,
+        showProcedureModal:false
+      }
+    }
+    
     case 'FETCH_APPOINTMENTS': {
       return {
         ...state,
@@ -43,12 +87,27 @@ export default (state=defaultState, action={}) => {
           appointments: action.payload.data.data || action.payload.data // in case pagination is disabled
         }
       }
-    case 'NEW_APPOINTMENT': {
+      case 'NEW_APPOINTMENT_PATIENT': {
         return {
           ...state,
-          appointment: {}
+          showProfileForm:true
         }
       }
+
+      case 'APPOINTMENT_CLOSE_PATIENT_FORM': {
+        return {
+          ...state,
+          showProfileForm:false
+        }
+      }
+
+      case 'NEW_APPOINTMENT': {
+        return {
+          ...state,
+          showAppointmentForm:true
+        }
+      }
+
 
     case 'FETCH_APPOINTMENT_PENDING': {
         return {
@@ -109,6 +168,14 @@ export default (state=defaultState, action={}) => {
           appointments: [...state.appointments, action.payload.data],
           errors: {},
           loading: false
+        }
+      }
+
+      case 'SAVE_APPOINTMENT':{
+        var appointment = {id:3, date: {day:"28", month: "Aug", weekday:"Monday"}, patient:action.patient, doctor: action.doctor, status:"SCHEDULED" };
+        return {
+          ...state,
+          appointment:appointment
         }
       }
 

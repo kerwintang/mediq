@@ -9,7 +9,7 @@ export default class MediqText extends Component {
 	render() {
 		const { style } = this.props;
 		return (
-			<Text { ...this.props } style={StyleSheet.flatten([style, {backgroundColor:'transparent', fontFamily: "Imprima"}])}/>
+			<Text { ...this.props } style={StyleSheet.flatten([{backgroundColor:'transparent'}, style])}/>
 		);
     }
 }

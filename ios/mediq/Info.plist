@@ -57,27 +57,29 @@
 		<string>NixieOne-Regular.ttf</string>
 		<string>Mitr-Light.ttf</string>
 	</array>
-  <key>CFBundleURLTypes</key>
-  <array>
-    <dict>
-      <key>CFBundleURLSchemes</key>
-      <array>
-        <string>fb790788974425254</string>
-      </array>
-    </dict>
-  </array>
-  <key>FacebookAppID</key>
-  <string>790788974425254</string>
-  <key>FacebookDisplayName</key>
-  <string>Medi-Q</string>
-  <key>LSApplicationQueriesSchemes</key>
-  <array>
-    <string>fbapi</string>
-    <string>fb-messenger-api</string>
-    <string>fbauth2</string>
-    <string>fbshareextension</string>
-  </array>
-  <key>NSPhotoLibraryUsageDescription</key>
-  <string>Medi-Q will use your profile picture in the app.</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>fb790788974425254</string>
+			</array>
+		</dict>
+	</array>
+	<key>FacebookAppID</key>
+	<string>790788974425254</string>
+	<key>FacebookDisplayName</key>
+	<string>Medi-Q</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>fbapi</string>
+		<string>fb-messenger-api</string>
+		<string>fbauth2</string>
+		<string>fbshareextension</string>
+	</array>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Medi-Q will use your profile picture in the app.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Medi-Q will use your camera to upload pictures to appointment records.</string>
 </dict>
 </plist>

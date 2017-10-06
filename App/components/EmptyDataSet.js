@@ -9,16 +9,15 @@ class EmptyDataSet extends Component{
 		super(props);
 	}
 	
-    async postFbInfo(){
-   // 	let response = await fetch(this.props.host+'api/fbInfo?deviceId='+this.props.deviceInfo.getUniqueID()+'&lat='+this.props.location.latitude+'&lng='+this.props.location.longitude+'&fbId='+this.props.fbInfo.id)
-	//	    let responseJson = await response;
-    }
-
 	render() {
+		const images = {
+			list:require("../img/list.png")
+		}
 	    return (
-	      <View style={{flexDirection:"column", justifyContent:"center", alignItems:"center", height:"80%", width:"100%"}}>
-	        <MediqText style={{color:"white", padding:20}}>You have no appointments scheduled.</MediqText>
-            <Button title="Schedule an Appointment"/>
+	      <View style={{flexDirection:"column", paddingTop:"20%", alignItems:"center", height:"100%", width:"100%", backgroundColor:"#EEEEEE"}}>
+	        <Image style={{height:100, width:100}} resizeMode="center" source={images[this.props.icon]}/>
+	        <MediqText style={{color:"gray", padding:20, fontSize:18}}>{this.props.title}</MediqText>
+	        <MediqText style={{color:"gray", padding:20, textAlign:"center"}}>{this.props.message}</MediqText>
 	      </View>
 	    );
 	  }

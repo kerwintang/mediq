@@ -1,25 +1,12 @@
 import React, { Component } from 'react';
 import { View, Text, Image, TouchableWithoutFeedback, Button, StyleSheet, ActivityIndicator } from 'react-native';
 import MediqText from './MediqText.js';
-
-const styles = StyleSheet.create({
-	  completedStatus: {
-		color:"#00B300",
-		fontSize:20
-	},
-	scheduledStatus: {
-		color:"#3333FF",
-		fontSize:20
-	},
-	cancelledStatus: {
-		color:"#FF0000",
-		fontSize:20
-	}
-});
+import Styles from '../styles/Styles.js';
+import EmptyDataSet from './EmptyDataSet';
 
 const DumbAppointmentList = (props) => (
-    <View style={{flexDirection:'column', alignItems:'center'}}>
-        <MediqText style={{fontSize:20, padding:20, backgroundColor:"transparent",color:"white"}}>{props.title}</MediqText>
+    <View style={{flexDirection:'column', padding:5	}}>
+        <MediqText style={{fontSize:15, padding:5, backgroundColor:"transparent",color:"#8F8E94"}}>{props.title}</MediqText>
         <View style={{
             flexDirection: 'column',
             justifyContent: 'flex-start',
@@ -44,7 +31,7 @@ const DumbAppointmentUserView = (props) => (
 			<MediqText style={{backgroundColor:'transparent', textAlign:'left', fontSize:12, color:"#3333FF"}}>{props.appointment.date.weekday}</MediqText>
 		</View>
         <View style={{flexDirection:"column", width:"55%"}}>
-    		<MediqText style={{backgroundColor:'transparent', textAlign:'left', fontSize:15}}>{props.appointment.patient.name}'s Appointment</MediqText>
+    		<MediqText style={{backgroundColor:'transparent', textAlign:'left', fontSize:15}}>{props.appointment.Patient.name}'s Appointment</MediqText>
         </View>
 		<View style={{width:"20%", flexDirection: "column", alignItems:"center", paddingTop:10}}>
 			<Image style={{height:50, width:50}} resizeMode="center" source={require('../img/doctor.png')}/>
@@ -58,28 +45,27 @@ const DumbAppointmentDoctorView = (props) => (
 	<TouchableWithoutFeedback onPress={()=>{props.onPress(props.appointment); props.navigation.navigate("Appointment")}}>
 	<View style={{
 		flexDirection: 'row',
-		height:80, 
+		height:60, 
 		backgroundColor:"white",
 		alignItems:'center',
 		marginBottom:1
 	}}>
-        <View style={{width:"20%", flexDirection: "column", alignItems:"center", paddingTop:10}}>
+        <View style={{width:"20%", flexDirection: "column", alignItems:"center", padding:5}}>
 		<ActivityIndicator
 			style={{position:"absolute", height:50, width:50, paddingTop:5}}
           />
-			{props.appointment.patient.id?<Image style={{height:50, width:50, borderRadius:25}} resizeMode="center" source={{uri:'https://s3-ap-southeast-1.amazonaws.com/mediq-assets/patient'+props.appointment.patient.id+'.png'}}/>:
+			{props.appointment.Patient.id?<Image style={{height:50, width:50, borderRadius:25}} resizeMode="center" source={{uri:'https://s3-ap-southeast-1.amazonaws.com/mediq-assets/profile'+props.appointment.Patient.id+'.png'}}/>:
 			<Image style={{height:50, width:50}} resizeMode="center" source={require('../img/user.png')}/>}
-			<MediqText style={{backgroundColor:'transparent', textAlign:'left', paddingBottom:10, fontSize:10}}>{props.appointment.patient.firstName}</MediqText>
 		</View>
-        <View style={{flexDirection:"column", width:"60%"}}>
-            <MediqText style={props.appointment.status=="Completed"?styles.completedStatus:props.appointment.status=="Scheduled"?styles.scheduledStatus:styles.cancelledStatus}>{props.appointment.status}</MediqText>
-            <MediqText style={{backgroundColor:'transparent', textAlign:'left', fontSize:15}}>{props.appointment.patient.lastName}, {props.appointment.patient.firstName} </MediqText>
-            <Text adjustsFontSizeToFit={true} numberOfLines={1} style={{paddingTop:5, backgroundColor:'transparent', textAlign:'left', fontSize:14}}>{props.appointment.clinic.name}, {props.appointment.clinic.schedule}</Text>
+        <View style={{flexDirection:"column", width:"80%"}}>
+			<View style={{flexDirection:"row"}}>
+    	        <MediqText style={{backgroundColor:'transparent', textAlign:'left', fontSize:18, color:"#0F3D68"}}>{props.appointment.Patient.lastName}, {props.appointment.Patient.firstName} </MediqText>
+				<MediqText style={props.appointment.status=="COMPLETED"?Styles.styles.completedStatus:props.appointment.status=="SCHEDULED"?Styles.styles.scheduledStatus:Styles.styles.cancelledStatus}>{props.appointment.status}</MediqText>
+			</View>
+			<View style={{paddingTop:5}}>
+	            <MediqText style={{backgroundColor:'transparent', color:"#8F8E94", textAlign:'left', fontSize:14}}>{props.appointment.Patient.age}</MediqText>
+			</View>
 	    </View>
-		<View style={{width:"20%", flexDirection: "column", alignItems:"center", paddingTop:10}}>
-			<Image style={{height:50, width:50}} resizeMode="center" source={require('../img/doctor.png')}/>
-			<MediqText style={{backgroundColor:'transparent', textAlign:'left', paddingBottom:10, fontSize:10}}>{props.appointment.doctor.name}</MediqText>
-		</View>
 	</View>
 	</TouchableWithoutFeedback>
 );
@@ -98,8 +84,8 @@ const DumbAppointmentProfileView = (props) => (
             <MediqText style={{backgroundColor:'transparent', textAlign:'left', fontSize:12, color:"#3333FF"}}>{props.appointment.date.weekday}</MediqText>
         </View>
         <View style={{flexDirection:"column", width:"75%"}}>
-            <MediqText style={props.appointment.status=="Completed"?styles.completedStatus:props.appointment.status=="Scheduled"?styles.scheduledStatus:styles.cancelledStatus}>{props.appointment.status}</MediqText>
-            <MediqText style={{backgroundColor:'transparent', textAlign:'left', fontSize:15}}>{props.appointment.patient.lastName}, {props.appointment.patient.firstName} </MediqText>
+            <MediqText style={props.appointment.status=="Completed"?Styles.styles.completedStatus:props.appointment.status=="Scheduled"?Styles.styles.scheduledStatus:Styles.styles.cancelledStatus}>{props.appointment.status}</MediqText>
+            <MediqText style={{backgroundColor:'transparent', textAlign:'left', fontSize:15}}>{props.appointment.Patient.lastName}, {props.appointment.Patient.firstName} </MediqText>
             <MediqText adjustsFontSizeToFit={true} numberOfLines={1} style={{paddingTop:5, backgroundColor:'transparent', textAlign:'left', fontSize:14}}>{props.appointment.clinic.name}, {props.appointment.clinic.schedule}</MediqText>
     </View>
 	</View>
@@ -107,10 +93,6 @@ const DumbAppointmentProfileView = (props) => (
 );
 
 export default class AppointmentList extends Component {
-	static navigationOptions = {
-	    title: 'Medi-Q',
-	    headerRight: <Button title="Logout" />,
-	  };
 	
 	constructor(props) {
 		super(props);
@@ -128,7 +110,10 @@ export default class AppointmentList extends Component {
             }
 		}
 		return (
-			<DumbAppointmentList title={this.props.title} appointments={appointments}/>
+			(appointments.length>0)?
+			<DumbAppointmentList title={this.props.title} appointments={appointments}/>:
+			<EmptyDataSet icon="list" title="No Appointments Scheduled" message="You have no appointments scheduled. Click on New Appointment to create an appointment."/>
+			
 		);
     }
 }
