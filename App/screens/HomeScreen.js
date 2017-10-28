@@ -1,9 +1,10 @@
 import React, { Component } from 'react';
-import { Platform, ScrollView, View, Text, Image, TouchableWithoutFeedback, TouchableOpacity, Button, Alert, ActivityIndicator } from 'react-native';
+import { Platform, ScrollView, View, Text, Modal, Image, TouchableWithoutFeedback, TouchableOpacity, Button, Alert, ActivityIndicator } from 'react-native';
 import { connect } from 'react-redux';
 import AppointmentList from '../components/AppointmentList.js';
 import PatientList from '../components/PatientList.js';
 import ScheduleList from '../components/ScheduleList.js';
+import ProfilePicture from '../components/ProfilePicture.js';
 import ProfileFormScreen from '../screens/ProfileFormScreen.js';
 import EmptyDataSet from '../components/EmptyDataSet.js';
 import MediqText from '../components/MediqText.js';
@@ -31,18 +32,14 @@ const DumbHomeScreen = (props) => (
 	}}>
 		<View style={{flexDirection: "row", padding:10, margin:5, height:100, backgroundColor:"white", justifyContent:"center"}}>
 			<View style={{flexDirection: "column", width:"22%"}}>
-			<ActivityIndicator
-				style={{position:"absolute", height:70, width:70, paddingTop:5}}
-			/>
 				<TouchableWithoutFeedback onPress={()=>{ props.viewProfile(props.profile, props.user.role); props.navigation.navigate("Profile")}}>
-					{props.user.id?<Image style={{height:70, width:70, borderRadius:35}} resizeMode="center" source={{uri:'https://s3-ap-southeast-1.amazonaws.com/mediq-assets/profile'+props.user.id+'.png'}}/>:
-					<Image style={{height:70, width:70}} resizeMode="center" source={require('../img/user.png')}/>}
+					<ProfilePicture profile={props.profile} type={props.user.role} style={{height:70, width:70, borderRadius:35}}/>
 				</TouchableWithoutFeedback>
 			</View>
 			<View style={{flexDirection: "column", padding:10, width:"78%"}}>
 				<MediqText numberOfLines={2} style={{fontSize:18}}>Hi, {props.user.role=="doctor"?"Dr. "+props.profile.lastName:props.profile.firstName}</MediqText>
 				<View style={{flexDirection:"row", alignItems:"center", justifyContent:"center", borderWidth:1, borderRadius:5, margin:15}}>
-					{props.user.role=="owner"?<View style={props.appointmentListShow?Styles.styles.selectedView:Styles.styles.unselectedView}>
+					{props.user.role=="patient"?<View style={props.appointmentListShow?Styles.styles.selectedView:Styles.styles.unselectedView}>
 						<MediqText style={props.appointmentListShow?Styles.styles.selectedText:Styles.styles.unselectedText} onPress={props.showAppointmentList}>Appointments</MediqText>
 					</View>:null}
 					{props.user.role=="doctor"?<View style={props.scheduleListShow?Styles.styles.selectedView:Styles.styles.unselectedView}>
@@ -57,20 +54,33 @@ const DumbHomeScreen = (props) => (
 		{(props.scheduleListShow && props.user.role=="doctor")?
 			<ScheduleList navigation={props.navigation} onPress={props.showSchedule} onPress={props.showSchedule}/>
 			:null}
-		{(props.appointmentListShow && props.user.role=="owner")?( 
+		{(props.appointmentListShow && props.user.role=="patient")?( 
 			(!props.appointments||props.appointments.length==0)?
 			<EmptyDataSet icon="list" title="No Appointments Scheduled" message="You have no appointments scheduled."/>:
-			<AppointmentList title={new Date().getDate()} appData={props.appointments} navigation={props.navigation} onPress={props.showAppointment}/>
+			<AppointmentList title={new Date().getDate()} appData={props.appointments} navigation={props.navigation} onPress={props.showAppointment} type="home"/>
 			):null}
 		{props.patientListShow?
+			<ScrollView style={{width:"100%"}} contentContainerStyle={{width:"100%", paddingBottom:40}}>
 			<PatientList navigation={props.navigation} onPress={props.showProfile}/>
+			</ScrollView>
 		:null}
 		{props.patientListShow?<View style={Styles.styles.pageFooterButton}>
 		<TouchableOpacity onPress={props.newPatient}>
 			<MediqText style={Styles.styles.pageFooterButtonText}>+NEW PATIENT</MediqText>
 		</TouchableOpacity>
 		</View>:null}
-		{props.showProfileForm?<ProfileFormScreen />:null}
+		{(props.appointmentListShow && props.user.role=="patient")?<View style={Styles.styles.pageFooterButton}>
+		<TouchableOpacity onPress={props.newAppointment}>
+			<MediqText style={Styles.styles.pageFooterButtonText}>+NEW APPOINTMENT</MediqText>
+		</TouchableOpacity>
+		</View>:null}
+		<Modal
+          animationType="slide"
+          transparent={false}
+          visible={props.showProfileForm}
+          >
+		  <ProfileFormScreen/>
+		</Modal>
 	</View>
 );
 
@@ -83,7 +93,7 @@ class HomeScreen extends Component {
 	    title: 'Home',
 		headerStyle: { backgroundColor:"#0F3D68" },
 		headerTitleStyle: { color:"white" },
-		headerRight: <Button title="Logout" onPress={() => params.confirmLogout()} />
+		headerRight: <Text style={{color:"white", paddingRight:15, fontSize:17}} onPress={() => params.confirmLogout()} >Logout</Text>
 		}
 	  };
 	
@@ -109,7 +119,10 @@ class HomeScreen extends Component {
 
 //		this.props.setSchedules(schedules);
 		this.loadPatients();
-		this.loadSchedules();
+		if(this.props.user.role=="doctor")
+			this.loadSchedules();
+		if(this.props.user.role=="patient")
+			this.loadAppointments();
 		this.props.hideLoginLoading();
 		this.props.navigation.setParams({
 			confirmLogout: this.confirmLogout
@@ -117,11 +130,11 @@ class HomeScreen extends Component {
 	}
 
 	loadPatients(){
-		client.get("/api/profile/patients/d",{headers:{"x-access-token": this.props.token}})
+		client.get("/api/profile/patients/"+this.props.user.role,{headers:{"x-access-token": this.props.token}})
 		.then(res => {
 			var patients = [];
 			for(var i=0;i<res.data.length;i++){
-				patients.push(res.data[i].Profile);
+				patients.push(res.data[i]);
 			}
 			this.props.setPatients(patients);
 		});
@@ -131,6 +144,13 @@ class HomeScreen extends Component {
 		client.get("/api/clinicSchedules/"+moment(this.props.currentDate).format("MMDDYYYY"),{headers:{"x-access-token": this.props.token}})
 		.then(res => {
 			this.props.setClinicSchedules(res.data);
+		});
+	}
+
+	loadAppointments(){
+		client.get("/api/appointments/"+moment().format("MMDDYYYY"),{headers:{"x-access-token": this.props.token}})
+		.then(res => {
+			this.props.setAppointments(res.data);
 		});
 	}
 
@@ -163,6 +183,7 @@ class HomeScreen extends Component {
 			 navigation={this.props.navigation} 
 			 showAppointment={this.props.showAppointment} 
 			 newPatient={this.props.newPatient}
+			 newAppointment={this.props.newAppointment}
 			 showProfile={this.props.showProfile} 
 			 showSchedule={this.props.showSchedule} 
 			 appointments={this.props.appointments} 
@@ -221,6 +242,7 @@ const mapDispatchToProps = (dispatch) => ({
 	hideLoginLoading: () => { dispatch({ type:'HIDE_LOGIN_LOADING'})},
 	setSchedules: (schedules) => { dispatch({ type:'SET_SCHEDULES', schedules:schedules})},
 	newPatient: () => { dispatch({ type: 'NEW_PATIENT'}) },
+	newAppointment: () => { dispatch({ type: 'NEW_APPOINTMENT'}) },
 	setPatients: (patients) => { dispatch({ type: 'SET_PATIENTS', patients:patients }) },
 	setSchedules: (schedules) => { dispatch({ type: 'SET_SCHEDULES', schedules:schedules }) },
 	setClinicSchedules: (clinicSchedules) => { dispatch({ type: 'SET_CLINIC_SCHEDULES', clinicSchedules:clinicSchedules }) },

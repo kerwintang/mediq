@@ -3,8 +3,10 @@ const moment = require("moment");
 const defaultState = {
   loading: false,
   reload: false,
+  reloadAppointments: false,
   showAppointmentForm: false,
   schedules:[],
+  appointments:[],
   clinicSchedules:{},
   showCalendar:false,
   date: moment(new Date()).startOf('day').toDate(),
@@ -29,6 +31,28 @@ export default (state=defaultState, action={}) => {
         clinicSchedules: action.clinicSchedules,
       }
     }
+
+    case 'SET_APPOINTMENTS': {
+      return {
+        ...state,
+        appointments: action.appointments,
+        reloadAppointments:false
+      }
+    }
+
+  	case 'ADD_SCHEDULE': {
+      var schedules = [];
+      for(var i=0;i<state.schedules.length;i++){
+        schedules.push(state.schedules[i]);
+      }
+      for(var i=0;i<actio .schedules.length;i++){
+        schedules.push(action.schedules[i]);
+      }
+      return {
+        ...state,
+        schedules: schedules
+      }
+    }
     
   	case 'SET_SCHEDULES': {
       return {
@@ -41,10 +65,10 @@ export default (state=defaultState, action={}) => {
       return {
         ...state,
         clinicSchedule: action.clinicSchedule,
-        appointments: action.clinicSchedule?action.clinicSchedule.Appointments:state.appointments
+        appointments: (action.clinicSchedule && action.clinicSchedule.Appointments)?action.clinicSchedule.Appointments:state.appointments
       }
     }
-    
+
     case 'SHOW_CALENDAR': {
       return {
         ...state,
@@ -66,6 +90,19 @@ export default (state=defaultState, action={}) => {
       }
     }
     
+    
+  	case 'SHOW_APPOINTMENT': {
+      var schedule = state.schedule;
+      if(action.appointment.ClinicSchedule){
+        schedule = action.appointment.ClinicSchedule.Schedule;
+        schedule.Clinic = action.appointment.ClinicSchedule.Clinic;
+      }
+      return {
+        ...state,
+        schedule: schedule
+      }
+    }
+
   	case 'NEW_APPOINTMENT': {
       return {
         ...state,
@@ -77,6 +114,15 @@ export default (state=defaultState, action={}) => {
       return {
         ...state,
         showAppointmentForm: false,
+        reloadAppointments: true
+      }
+    }
+
+  	case 'CLOSE_PROFILE_FORM': {
+      return {
+        ...state,
+        showAppointmentForm: false,
+        reloadAppointments: true
       }
     }
 

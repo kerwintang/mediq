@@ -2,12 +2,12 @@ import React, { Component } from 'react';
 import { Animated, Easing, Platform, StyleSheet,  Linking, View, Text, TextInput, Image, TouchableWithoutFeedback } from 'react-native';
 import { connect } from 'react-redux';
 import MediqText from '../components/MediqText.js';
-import HmoForm from '../components/HmoForm.js';
+import HmoForm from '../forms/HmoForm.js';
 import showResults from './ShowResults.js';
 import { client } from '../actions'
 
 const DumbHmoFormScreen = (props) => (
-	<Animated.View style={{
+	<View style={{
   	    position: 'absolute',
   	    top: 0,
   	    left: 0,
@@ -17,10 +17,9 @@ const DumbHmoFormScreen = (props) => (
   	    borderRadius:10,
   	    flexDirection:'column',
   	    alignItems:'center',
-		transform: [{translateY: props.bounceValue}]
 	}}>
 		<HmoForm onSubmit={showResults} saveHmo={props.saveHmo} closeHmoForm={props.closeHmoForm} handleFormChange={props.handleFormChange}/>
-	</Animated.View>
+	</View>
 );
 
 
@@ -32,53 +31,9 @@ class HmoFormScreen extends Component {
 	  constructor(props) { 
 		super(props);
 
-		this.state = {
-			bounceValue: new Animated.Value(1000)
-		}
-
-		this.closeHmoForm = this.closeHmoForm.bind(this)
 		this.saveHmo = this.saveHmo.bind(this)
 	}
 
-	showHmoForm(){
-		Animated.timing(
-			this.state.bounceValue,
-			{
-			  toValue: 0,
-			  easing: Easing.ease,
-			  duration:500
-			}
-		  ).start();
-	}
-
-	showHmoFormQuick(){
-		Animated.timing(
-			this.state.bounceValue,
-			{
-			  toValue: 0,
-			  easing: Easing.ease,
-			  duration:1
-			}
-		  ).start();
-	}
-
-	closeHmoForm(){
-		Animated.timing(
-			this.state.bounceValue,
-			{
-			  toValue:1000,
-			  easing: Easing.ease,
-			  duration:500
-			}
-		  ).start();
-		setTimeout(() => { this.props.closeHmoForm(); },500);
-	}
-
-	componentWillReceiveProps(nextProps){
-		if(!this.props.showHmoForm && nextProps.showHmoForm){
-		this.showHmoForm();
-		}
-	}
 
 	componentDidMount(){
 		if(this.props.hmoList.length==0){
@@ -89,7 +44,6 @@ class HmoFormScreen extends Component {
 				alert("ERROR: "+err);
 			});
 		}
-		this.showHmoForm();
 	}
 
 	saveHmo(){
@@ -110,7 +64,7 @@ class HmoFormScreen extends Component {
 				hmos.push(res.data[i].Hmo);
 			}
 			this.props.setHmos(hmos);
-			this.closeHmoForm();
+			this.props.closeHmoForm();
 		}).catch((err) => {
 			alert("ERROR: "+err);
 			this.closeHmoForm();
@@ -119,7 +73,7 @@ class HmoFormScreen extends Component {
 
 	render() {
 		return (
-			<DumbHmoFormScreen bounceValue={this.state.bounceValue} handleFormChange={this.props.saveHmoForm} saveHmo={this.saveHmo} closeHmoForm={this.closeHmoForm}/>
+			<DumbHmoFormScreen handleFormChange={this.props.saveHmoForm} saveHmo={this.saveHmo} closeHmoForm={this.props.closeHmoForm}/>
 		);
     }
 }

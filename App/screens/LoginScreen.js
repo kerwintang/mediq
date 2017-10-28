@@ -1,10 +1,12 @@
 import React, { Component } from 'react';
-import { Platform, Linking, View, Text, Image, TouchableWithoutFeedback, Button, ActivityIndicator } from 'react-native';
+import { Platform, Linking, Text, Image, TouchableWithoutFeedback, ActivityIndicator } from 'react-native';
 import { connect } from 'react-redux';
 import FBLogin from '../components/FBLogin.js';
 import MediqText from '../components/MediqText.js';
 import Login from 'react-native-simple-login'
 import Styles from '../styles/Styles.js';
+import { Field, reduxForm } from "redux-form";
+import { Item, Input, Icon, Toast, Form, View, Button } from "native-base";
 import { client } from '../actions'
 
 const FBSDK = require('react-native-fbsdk');
@@ -12,6 +14,14 @@ const {
   AccessToken
 } = FBSDK;
 
+const required = value => (value ? undefined : "Required");
+const maxLength = max => value => (value && value.length > max ? `Must be ${max} characters or less` : undefined);
+const maxLength15 = maxLength(15);
+const minLength = min => value => (value && value.length < min ? `Must be ${min} characters or more` : undefined);
+const minLength8 = minLength(8);
+const email = value =>
+	value && !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(value) ? "Invalid email address" : undefined;
+const alphaNumeric = value => (value && /[^a-zA-Z0-9 ]/i.test(value) ? "Only alphanumeric characters" : undefined);
 
 
 const DumbLoginScreen = (props) => (
@@ -26,7 +36,7 @@ const DumbLoginScreen = (props) => (
 		justifyContent:'flex-start',
 		width:"100%"
 	}}>
-		<Image fadeDuration={0} style={{position:'absolute',height:'100%', width:'100%'}} source={require('../img/bgLogin.png')} />
+		<Image fadeDuration={0} style={{position:'absolute',height:'100%', width:'100%'}} source={require('../img/bg_login.png')} />
 		<View style={{
 			position: 'absolute',
 			top: 0,
@@ -38,19 +48,16 @@ const DumbLoginScreen = (props) => (
 		}}>
 		</View>
 		<Image fadeDuration={0} style={{height:50, width:50, padding: 100}} resizeMode="contain" source={require('../img/mediqLogo.png')} />
-
-		<Login
-		loginFormWrapperStyle={{width:"90%"}}
-		loginResetPasswordLinkTextStyle={{backgroundColor:"transparent", color:Styles.colors.twilightBlue}}
-		onLogin={props.onLogin}
-		onResetPassword={props.onResetPassword}
-		inputStyle={{color:"black", padding:10, marginLeft:20}}
-		inputPlaceholderTextColor="#EEEEEE"
-		/>
-		<View style={{padding:10, width:"90%", backgroundColor:"white", flexDirection:"row",alignItems:"center", justifyContent:"center"}}>
-			<Text style={{fontSize:20, color:"#4267b2"}}>Sign-up</Text>
+		{props.form}
+		<View style={{width:"100%", padding:10, display:"flex", alignItems:"flex-end"}}>
+		<Text textAlign="right" style={{backgroundColor:"transparent", color:"white"}}>Forgot Password?</Text>
 		</View>
-		<FBLogin onLogin={props.onFbLogin}/>
+		<View style={{width:"100%", padding:15}}>
+		<Button block style={{backgroundColor:Styles.colors.twilightBlue}} onPress={() => props.onLogin()}>
+			<Text style={{color:"white", fontSize:18}}>Login</Text>
+		</Button>
+	</View>
+			<FBLogin onLogin={props.onFbLogin}/>
 		{(props.loginLoading)?
 			<View fadeDuration={0} style={{position:'absolute', backgroundColor:"black",height:'100%', width:'100%', flexDirection:"column", alignItems:"center", justifyContent:"center", opacity:0.9}}>
 			<ActivityIndicator size="large"
@@ -121,6 +128,7 @@ class LoginScreen extends Component {
 	constructor(props) {
 		super(props);
 
+		this.fbLogin = this.fbLogin.bind(this);
 		AccessToken.getCurrentAccessToken().then((data) => {
 			if(data){
 					const { accessToken } = data
@@ -137,7 +145,6 @@ class LoginScreen extends Component {
 				this.props.hideLoginLoading();
 			}
 		})
-		this.fbLogin = this.fbLogin.bind(this);
 	}
 
 	async authenticate(username, password){
@@ -146,39 +153,83 @@ class LoginScreen extends Component {
 			username:username,
 			password:password
 		}).then((res) => {
-			this.props.setToken(res.data.token)
-			this.props.doLogin(res.data.user, res.data.profile);
-			this.props.setSchedules(res.data.schedules);
+			if(res.data.success){
+				this.props.setToken(res.data.token)
+				this.props.doLogin(res.data.user, res.data.profile);
+				this.props.setSchedules(res.data.schedules);
+			}else{
+				Toast.show({
+					text: "Invalid username and/or password",
+					duration: 2000,
+					position: "bottom",
+					textStyle: { textAlign: "center" },
+				});
+			}
 		}).catch((err) => {
-			alert("ERR: "+err);
+			Toast.show({
+				text: "Error connecting to server. Please check that you have a stable internet connection.",
+				duration: 2000,
+				position: "bottom",
+				textStyle: { textAlign: "center" },
+			});
 		});
 	}
 
 	fbLogin(fbInfo) {
-		var user = this.getUser(fbInfo.email);
-		if(user){
-			//alert("FOUND");
-			this.props.doFbLogin(fbInfo, user);
-		}else{
+		client.post('/api/authenticate',{
+			username: fbInfo.email,
+			fbInfo:fbInfo
+		}).then((res) => {
+			this.props.setToken(res.data.token)
+			this.props.doLogin(res.data.user, res.data.profile);
+			if(res.data.schedules)
+				this.props.setSchedules(res.data.schedules);
 			this.props.setFbInfo(fbInfo);
-		}
+		}).catch((err) => {
+			Toast.show({
+				text: "Error logging in with your Facebook account. Please check that you have a stable internet connection.",
+				duration: 2000,
+				position: "bottom",
+				textStyle: { textAlign: "center" },
+			});
+			this.props.hideLoginLoading();
+		});
 	  }
 
 	  componentDidMount(){
 		  // testing 
-		  var user = this.authenticate("Doctor@gmail.com","password");
+		  //var user = this.authenticate("kerwintang@gmail.com","password");
+		  //var user = this.authenticate("Doctor@gmail.com","password");
 //		  this.props.doLogin(user);
 //		  this.props.setPatients(user.patients);
 		}
 
+		renderInput({ input, label, type, meta: { touched, error, warning } }) {
+			return (
+				<Item error={error && touched}>
+					<Input
+						ref={c => (this.textInput = c)}
+						placeholder={input.name === "email" ? "Username or E-mail Address" : "Password"}
+						secureTextEntry={input.name === "password" ? true : false}
+						{...input}
+					/>
+				</Item>
+			);
+		}
+
 	render() {
-		const onLogin = (email, password) => {
-			var user = this.authenticate(email, password);
-			if(!user){
-				alert("Invalid username/password.");
-			}else{
-				this.props.doLogin(user);
-				this.props.setPatients(user.patients);
+		const onLogin = () => {
+			if (this.props.valid) {
+				var email = this.props.loginForm.values.email;
+				var password = this.props.loginForm.values.password;
+				this.authenticate(email, password);
+			} else {
+				Toast.show({
+					text: "Invalid username and/or password",
+					duration: 2000,
+					position: "bottom",
+					textStyle: { textAlign: "center" },
+				});
 			}
 		  }
 		  
@@ -186,18 +237,38 @@ class LoginScreen extends Component {
 		  const onResetPassword = (email) => {
 			console.log(email)
 		  }
+
+		  const form = (
+			  <View style={{width:"100%", opacity:0.8,marginTop:60, paddingRight:15, backgroundColor:"#FEFEFE"}}>
+			<Form>
+				<Field name="email" component={this.renderInput} validate={[email, required]} />
+				<Field
+					name="password"
+					component={this.renderInput}
+					validate={[required]}
+				/>
+			</Form>
+			</View>
+		);
+		
 		return (
-			this.props.username?null:<DumbLoginScreen onLogin={onLogin} onFbLogin={this.fbLogin} onResetPassword={onResetPassword} loginLoading={this.props.loginLoading}/>
+			this.props.username?null:<DumbLoginScreen form={form} onLogin={onLogin} onFbLogin={this.fbLogin} onResetPassword={onResetPassword} loginLoading={this.props.loginLoading}/>
 		);
     }
 }
 
+const LoginContainer = reduxForm({
+	form: "login",
+})(LoginScreen);
+
 const mapStateToProps = state => ({
 	show: state.showAbout,
 	username: state.sessionStore.username,
+	token: state.sessionStore.token,
 	fbInfo: state.fbInfo,
 	inventory: state.inventory,
 	noLocation: state.noLocation,
+	loginForm: state.form.login,
 	loginLoading: state.sessionStore.loginLoading
 })
 
@@ -212,4 +283,4 @@ const mapDispatchToProps = (dispatch) => ({
 	setSchedules: (schedules) => { dispatch({ type: 'SET_SCHEDULES', schedules:schedules }) },
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(LoginScreen)
+export default connect(mapStateToProps, mapDispatchToProps)(LoginContainer)

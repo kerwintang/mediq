@@ -6,6 +6,7 @@ export default Styles = {
                 color:"#00B300",
             },
             scheduledStatus: {
+                width:80,
                 color:"#5AA83E",
                 borderWidth:1,
                 borderColor:"#5AA83E",
@@ -17,9 +18,19 @@ export default Styles = {
                 textAlign:"center",
                 textAlignVertical:"center"
             },
-            cancelledStatus: {
-                color:"#FF0000",
-            },
+            cancelledStatus: {color:"#FF0000",
+                width:100,
+                borderWidth:1,
+                borderColor:"#FF0000",
+                paddingLeft:3,
+                paddingRight:3,
+                paddingTop:4,
+                paddingBottom:4,
+                borderRadius:3,
+                fontSize:10,
+                textAlign:"center",
+                textAlignVertical:"center"}
+            ,
             pageHeaderButton:{
                 color:"#43C9FE",
                 fontSize:13,
@@ -105,12 +116,19 @@ export default Styles = {
                 justifyContent:"center"
               },
               vitals: {
-                flexDirection:"column",
+                flexDirection:"row",
                 alignItems:"center",
-                },
+                backgroundColor:"#DEDEDE",
+                borderRadius:10,
+                paddingLeft:20,
+                paddingRight:20,
+                paddingTop:5,
+                paddingBottom:5,
+                margin:5, 
+            },
 
                 procedure: {
-                    flexDirection:"column",
+                    flexDirection:"row",
                     alignItems:"center",
                     backgroundColor:"#DEDEDE",
                     borderRadius:10,
@@ -142,6 +160,33 @@ export default Styles = {
                 unselectedText: {
                     backgroundColor:"transparent", textAlign:"center"
                 },
+                scheduleDay: {
+                    color:"#8F8E94",
+                    borderColor:"#8F8E94",
+                    borderRadius:10,
+                    padding:10,
+                    borderWidth:3,
+                    marginLeft:7,
+                    marginRight:7,
+                    marginBottom:5,
+                    marginTop:5,
+                    alignItems:"center",
+                    justifyContent:"center",
+                },
+                scheduleDaySelected: {
+                    color:"#0F3D68",
+                    borderColor:"#0F3D68",
+                    borderWidth:3,
+                    fontWeight:"bold",
+                    borderRadius:10,
+                    padding:10,
+                    marginLeft:5,
+                    marginRight:5,
+                    marginBottom:5,
+                    marginTop:5,
+                    alignItems:"center",
+                    justifyContent:"center",
+                }
         }),
     colors: {
         brightCyan:"#43C9FE",

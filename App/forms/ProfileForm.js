@@ -1,15 +1,16 @@
 import React, { Component } from 'react';
 import { View, ScrollView, Image, Button, TextInput, Alert, TouchableOpacity } from 'react-native';
 import MediqText from '../components/MediqText.js';
+import ProfilePicture from '../components/ProfilePicture.js';
 import { Form,
     Separator,InputField, DatePickerField
   } from 'react-native-form-generator';
 import {KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Styles from '../styles/Styles.js';
-import PhotoUpload from 'react-native-photo-upload';
 import ImagePicker from 'react-native-image-picker';
 import { uploadFile } from '../actions/upload-actions.js';
 import { connect } from 'react-redux';
+import { client } from '../actions'
 
 class ProfileForm extends Component {
     
@@ -29,28 +30,35 @@ class ProfileForm extends Component {
       handleFormFocus(event, reactNode){
         this.refs.scroll.scrollToFocusedInput(reactNode)
      }
+
     render(){
         return (
-            <View style={{width:"100%",height:"100%"}}>
+            <View style={{width:"100%",height:"100%",paddingTop:"5%"}}>
             <KeyboardAwareScrollView ref='scroll'>
-                <MediqText style={{fontSize:20, textAlign:"center", padding:10, color:Styles.colors.twilightBlue}}>{this.props.role=="doctor"?"Doctor":"Patient"} Profile</MediqText>
-                <View style={{flexDirection:"column",alignItems:"center", width:"100%"}}>
+            <MediqText style={{fontSize:20, textAlign:"center", padding:10, color:Styles.colors.twilightBlue}}>Profile Form</MediqText>
+                {this.props.profile.id?<View style={{flexDirection:"column",alignItems:"center", width:"100%"}}>
                     <TouchableOpacity onPress={ () => {
                         ImagePicker.showImagePicker(null, (response) => {
 
                             if (response.error) {
                                 alert('Error encountered, please try again.');
                             }
-                            else {
-                                uploadFile("profiles/","profile6",response.uri, this.props.uploadComplete);
+                            else if(!response.didCancel){
+                                var filename = "profile"+this.props.profile.id+"_"+new Date().getTime();
+                                uploadFile("profiles/",filename,response.uri, this.props.uploadComplete);
+                                client.put('/api/profile/'+this.props.profile.id, {picture:filename},
+                                    {headers:{"x-access-token": this.props.token}}).then((res) => {
+                                        this.props.setPicture(filename);
+                                    }).catch((err) => {
+                                        alert("ERROR: "+err);
+                                    });
                             }
                         })
                     }}>
-                        {this.props.profile.id?<Image style={{height:100, width:100, borderRadius:50}} resizeMode="center" source={{uri:'https://s3-ap-southeast-1.amazonaws.com/mediq-assets/profile'+this.props.profile.id+'.png'}}/>:
-                        <Image style={{height:100, width:100,borderRadius:50}} source={require('../img/user.png')}/>}
+                        <ProfilePicture profile={this.props.profile} type={this.props.role} style={{height:100, width:100, borderRadius:50}}/>
                     </TouchableOpacity>
                     <MediqText style={{color:Styles.colors.purpleyGrey, fontSize:12}}>(Tap to set picture)</MediqText>
-                </View>
+                </View>:null}
                     <Form
                     label="Patient Profile"
                     onChange={this.props.handleFormChange}
@@ -118,11 +126,13 @@ class ProfileForm extends Component {
   
 const mapStateToProps = state => ({
     profile: state.profileStore.profile,
-    role: state.profileStore.role
+    role: state.profileStore.role,
+    token: state.sessionStore.token
 })
 
 const mapDispatchToProps = (dispatch) => ({
     uploadComplete: () =>  { dispatch({ type: 'UPLOAD_COMPLETE'}) },
+    setPicture: (picture) =>  { dispatch({ type: 'SET_PICTURE', picture:picture}) },
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(ProfileForm);

@@ -34,5 +34,7 @@ export function uploadFile(folder, name, path, uploadComplete) {
          *   }
          * }
          */
+      }).catch(error => {
+        alert("Error in uploading image, please check your internet connection.");
       });
 }

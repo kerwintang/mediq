@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { View, Text, TouchableWithoutFeedback, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableWithoutFeedback, ScrollView, ActivityIndicator, Image } from 'react-native';
 import SearchInput, { createFilter } from 'react-native-search-filter'
 import MediqText from '../components/MediqText.js';
 import { connect } from 'react-redux';
@@ -34,6 +34,11 @@ class SearchForm extends Component {
                 <Text style={{fontWeight:"bold", fontSize:20}}>{this.props.title}</Text>
                 <Text style={{marginBottom:10}}>{this.props.description}</Text>
               </View>
+              <View style={{position:"absolute", top:20, right:10}}>
+                <TouchableWithoutFeedback onPress={this.props.close}>
+                <Image style={{height:20, width:20}} resizeMode="center" source={require('../img/delete.png')}/>
+                </TouchableWithoutFeedback>
+                </View>
             <SearchInput style={{backgroundColor:"white", borderBottomWidth:1, padding:5}} onChangeText={(term) => { this.search(term) }} />
             
             {this.props.loaded?<ScrollView>

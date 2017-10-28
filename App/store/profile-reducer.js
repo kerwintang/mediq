@@ -5,6 +5,8 @@ const defaultState = {
   loading: false,
   appointments:[],
   showProfileForm: false,
+  showHmoForm: false,
+  showClinicScheduleForm: false,
   role:"patient",
   patientsList:[],
   hmos:[],
@@ -93,6 +95,22 @@ export default (state=defaultState, action={}) => {
       }
     }
 
+    case 'SHOW_CLINIC_SCHEDULE_FORM': {
+      return {
+        ...state,
+        showClinicScheduleForm: true
+      }
+    }
+    
+    case 'CLOSE_MODAL': {
+      return {
+        ...state,
+        showProfileForm: false,
+        showHmoForm: false,
+        showClinicScheduleForm: false,
+      }
+    }
+
     case 'SAVE_PROFILE_FORM': {
       return {
         ...state,
@@ -113,9 +131,23 @@ export default (state=defaultState, action={}) => {
         patientsList.push(state.patientsList[i]);
       }
       patientsList.push(state.profileForm);
+      var profile = {
+        ...state.profile,
+        ...state.profileForm
+      }
       return {
         ...state,
-        patientsList:patientsList
+        patientsList:patientsList,
+        profile:profile
+      }
+    }
+
+    case 'SET_PICTURE': {
+      var profile = state.profile;
+      profile.picture = action.picture;
+      return {
+        ...state,
+        profile: profile
       }
     }
 

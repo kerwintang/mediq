@@ -1,8 +1,10 @@
 import React, { Component } from 'react';
-import { Platform, StyleSheet,  Linking, View, ScrollView, Text, TextInput, Image, TouchableWithoutFeedback, ActivityIndicator, Modal } from 'react-native';
+import { Alert, Platform, StyleSheet,  Linking, View, ScrollView, Text, TextInput, Image, TouchableWithoutFeedback, ActivityIndicator, Modal } from 'react-native';
 import { connect } from 'react-redux';
 import MediqText from '../components/MediqText.js';
-import SearchForm from '../components/SearchForm.js';
+import ProfilePicture from '../components/ProfilePicture.js';
+import SearchForm from '../forms/SearchForm.js';
+import VitalsForm from '../forms/VitalsForm.js';
 import NotesScreen from '../screens/NotesScreen.js';
 import Styles from '../styles/Styles.js';
 import { client } from '../actions'
@@ -22,11 +24,7 @@ const DumbAppointmentScreen = (props) => (
 		}}>
 			<TouchableWithoutFeedback onPress={props.viewPatient}>
 			<View style={{width:"20%", flexDirection: "column", alignItems:"center", paddingTop:10}}>
-			<ActivityIndicator
-			style={{position:"absolute", height:50, width:50, paddingTop:5}}
-          />
-				{props.appointment.Patient.id?<Image style={{height:50, width:50, borderRadius:25}} resizeMode="center" source={{uri:'https://s3-ap-southeast-1.amazonaws.com/mediq-assets/patient'+props.appointment.Patient.id+'.png'}}/>:
-				<Image style={{height:50, width:50}} resizeMode="center" source={require('../img/user.png')}/>}
+				<ProfilePicture profile={props.appointment.Patient} type="patient"/>
 				<MediqText style={{backgroundColor:'transparent', textAlign:'left', paddingBottom:10, fontSize:10}}>{props.appointment.Patient.lastName}, {props.appointment.Patient.firstName}</MediqText>
 			</View>
 			</TouchableWithoutFeedback>
@@ -36,8 +34,8 @@ const DumbAppointmentScreen = (props) => (
 				<Text adjustsFontSizeToFit={true} numberOfLines={1} style={{paddingTop:5, backgroundColor:'transparent', textAlign:'left', fontSize:14}}>{props.schedule.Clinic.name}, {props.schedule.Clinic.room}</Text>
 			</View>
 			<View style={{width:"20%", flexDirection: "column", alignItems:"center", paddingTop:10}}>
-				<Image style={{height:50, width:50}} resizeMode="center" source={require('../img/doctor.png')}/>
-				<MediqText style={{backgroundColor:'transparent', textAlign:'left', paddingBottom:10, fontSize:10}}>Dr. {props.doctor.firstName} {props.doctor.lastName}</MediqText>
+				<ProfilePicture profile={props.appointment.Doctor.Profile} type="doctor"/>
+				<MediqText style={{backgroundColor:'transparent', textAlign:'left', paddingBottom:10, fontSize:10}}>Dr. {props.appointment.Doctor.Profile.firstName} {props.appointment.Doctor.Profile.lastName}</MediqText>
 			</View>
 		</View>
 		<ScrollView style={{height:"85%"}}>
@@ -47,13 +45,13 @@ const DumbAppointmentScreen = (props) => (
 					<MediqText style={Styles.styles.sectionHeader}>Vitals</MediqText>
 				</View>
 				<View style={{width:"40%", flexDirection:"row", justifyContent:"flex-end"}}>
-					<TouchableWithoutFeedback onPress={props.editVitals}>
+					<TouchableWithoutFeedback onPress={props.addNewVital}>
 						<MediqText style={Styles.styles.sectionHeaderAdd}>+ ADD VITALS</MediqText>
 					</TouchableWithoutFeedback>
 				</View>
 			</View>
 
-			<View style={Styles.styles.sectionContent}>
+			<View style={Styles.styles.procedureSectionContent}>
 				{props.vitals.length>0?props.vitals:<MediqText style={{color:"#8F8E94", fontStyle:"italic"}}>No vitals added yet.</MediqText>}
 			</View>
 		</View>
@@ -106,32 +104,44 @@ const DumbAppointmentScreen = (props) => (
 		</ScrollView>
 
 		<Modal
+		animationType="slide"
+		transparent={false}
+		visible={props.showVitalModal}
+		>
+		<VitalsForm close={props.closeModal} saveVitals={props.saveVitals}/>
+	  </Modal>
+	  <Modal
+          animationType="slide"
+          transparent={false}
+          visible={props.showProcedureModal}
+          >
+         <SearchForm saveVitals={props.saveVitals} onPress={props.select} close={props.closeModal}/>
+        </Modal>
+	  <Modal
           animationType="slide"
           transparent={false}
           visible={props.editingNotes}
           >
 		  <NotesScreen editingNotes={true}/>
 		</Modal>
-		<Modal
-          animationType="slide"
-          transparent={false}
-          visible={props.showProcedureModal}
-          >
-         <SearchForm onPress={props.select}/>
-        </Modal>
 	</View>
 );
 
 const DumbVitals = (props) => (
 	<View style={Styles.styles.vitals}>
-		<MediqText style={{fontSize:12, fontWeight:"bold"}}>{props.vitals.name}</MediqText>
-		<MediqText style={{fontSize:20}}>{props.vitals.value}</MediqText>
+		<MediqText style={{fontSize:14, borderRightWidth:1, paddingRight:5}}><Text style={{fontWeight:"bold"}}>{props.vitals.name}:</Text> {props.vitals.value}</MediqText>
+		<TouchableWithoutFeedback onPress={()=>{props.removeVitals(props.vitals.id)}}>
+			<Image style={{height:12, width:12}} resizeMode="center" source={require('../img/delete.png')}/>
+		</TouchableWithoutFeedback>
 	</View>
 );
 
 const DumbProcedure = (props) => (
 	<View style={Styles.styles.procedure}>
-		<MediqText style={{fontSize:12, fontWeight:"bold"}}>{props.procedure.name}</MediqText>
+		<MediqText style={{fontSize:14, borderRightWidth:1, paddingRight:5}}>{props.procedure.name}</MediqText>
+		<TouchableWithoutFeedback onPress={()=>{props.removeProcedure(props.appointment.id, props.procedure.id)}}>
+			<Image style={{height:12, width:12}} resizeMode="center" source={require('../img/delete.png')}/>
+		</TouchableWithoutFeedback>
 	</View>
 );
 
@@ -161,12 +171,34 @@ class AppointmentScreen extends Component {
 		this.viewPatient = this.viewPatient.bind(this);
 		this.searchProcedure = this.searchProcedure.bind(this);
 		this.selectProcedure = this.selectProcedure.bind(this);
+		this.saveVitals = this.saveVitals.bind(this);
+		this.removeVitals = this.removeVitals.bind(this);
+		this.removeProcedure = this.removeProcedure.bind(this);
 	}
 
 	componentDidMount(){
+		this.fetchVitals();
 		this.fetchProcedures();
 		this.fetchDoctorNotes();
 		this.fetchPatientNotes();
+	}
+
+	fetchVitals(){
+		client.get('/api/vitals/'+this.props.appointment.id,
+		{headers:{"x-access-token": this.props.token}}).then((res) => {
+			this.props.setVitals(res.data);
+		}).catch((err) => {
+			alert("ERROR: "+err);
+		});
+	}
+
+	fetchProcedures(){
+		client.get('/api/vitals/'+this.props.appointment.id,
+		{headers:{"x-access-token": this.props.token}}).then((res) => {
+			this.props.setVitals(res.data);
+		}).catch((err) => {
+			alert("ERROR: "+err);
+		});
 	}
 
 	fetchProcedures(){
@@ -222,6 +254,16 @@ class AppointmentScreen extends Component {
 		this.props.navigation.navigate("Profile");
 	}
 
+	saveVitals(){
+		client.post('/api/vital',{appointmentId:this.props.appointment.id, name:this.props.vitalName, value:this.props.vitalValue},
+		{headers:{"x-access-token": this.props.token}}).then((res) => {
+			this.props.addVital(res.data);
+		}).catch((err) => {
+			alert("ERROR: "+err);
+		});
+		this.props.closeModal();
+	}
+	
 	selectProcedure(item){
 		client.post('/api/appointmentprocedure/'+this.props.appointment.id+'/'+item.id,{},
 		{headers:{"x-access-token": this.props.token}}).then((res) => {
@@ -231,17 +273,53 @@ class AppointmentScreen extends Component {
 		});
 		this.props.closeModal();
 	}
+
+	removeVitals(id){
+		Alert.alert(
+			"Remove Vitals",
+			"Are you sure you want to remove this vital information?",
+			[
+				{text: 'Cancel', onPress: () => console.log("Cancelled"), style: 'cancel'},
+				{text: 'OK', onPress: () => {
+					client.delete('/api/vital/'+id,
+					{headers:{"x-access-token": this.props.token}}).then((res) => {
+						this.props.removeVitals(id);
+					}).catch((err) => {
+						alert("ERROR: "+err);
+					});
+				}},
+			  ]
+		)
+	}
+	
+	removeProcedure(appointmentId, procedureId){
+		Alert.alert(
+			"Remove Procedure",
+			"Are you sure you want to remove this procedure?",
+			[
+				{text: 'Cancel', onPress: () => console.log("Cancelled"), style: 'cancel'},
+				{text: 'OK', onPress: () => {
+					client.delete('/api/appointmentprocedure/'+appointmentId+'/'+procedureId,
+					{headers:{"x-access-token": this.props.token}}).then((res) => {
+						this.props.removeProcedure(appointmentId, procedureId);
+					}).catch((err) => {
+						alert("ERROR: "+err);
+					});
+				}},
+			  ]
+		)
+	}
 	
 	render() {
 		var vitals = [];
 		//for(var i in this.props.appointments){
 		for(var i in this.props.vitals){
-			vitals.push(<DumbVitals key={i} vitals={this.props.appointment.vitals[i]}/>)
+			vitals.push(<DumbVitals key={i} vitals={this.props.vitals[i]} removeVitals={this.removeVitals}/>)
 		}
 
 		var procedures = [];
 		for(var i in this.props.procedures){
-			procedures.push(<DumbProcedure key={i} procedure={this.props.procedures[i]}/>)
+			procedures.push(<DumbProcedure key={i} appointment={this.props.appointment} procedure={this.props.procedures[i]} removeProcedure={this.removeProcedure}/>)
 		}
 
 		var doctorNotes = [];
@@ -259,25 +337,26 @@ class AppointmentScreen extends Component {
 			}
 			patientNotes.push(<DumbNotes key={i} notes={this.props.patientNotes[i]}/>)
 		}
-
 		return (
 			this.props.appointment?
 				<DumbAppointmentScreen 
 					appointment={this.props.appointment} 
 					schedule={this.props.schedule}
-					doctor={this.props.profile}
+					user={this.props.user}
 					vitals={vitals} 
 					procedures={procedures} 
 					doctorNotes={doctorNotes} 
 					patientNotes={patientNotes} 
 					viewPatient={this.viewPatient} 
 					searchProcedure={this.searchProcedure}
+					addNewVital={this.props.addNewVital}
+					saveVitals={this.saveVitals}
 					showProcedureModal={this.props.showProcedureModal}
+					showVitalModal={this.props.showVitalModal}
 					closeModal={this.props.closeModal}
 					select={this.selectProcedure}
 					editVitals={this.props.editVitals} 
 					editNotes={this.props.editNotes} 
-					editingVitals={this.props.editingVitals} 
 					editingNotes={this.props.editingNotes}/> : null
 		);
     }
@@ -286,12 +365,16 @@ class AppointmentScreen extends Component {
 const mapStateToProps = state => ({
 	schedule: state.scheduleStore.schedule,
 	profile: state.sessionStore.profile,
+	user: state.sessionStore.profile,
 	show: state.showAbout,
 	fbInfo: state.fbInfo,
 	appointment: state.appointmentStore.appointment,
-	editingVitals: state.notesStore.editVitals,
+	showVitalModal: state.appointmentStore.showVitalModal,
 	showProcedureModal: state.appointmentStore.showProcedureModal,
 	editingNotes: state.notesStore.editNotes,
+	vitals: state.appointmentStore.vitals,
+	vitalName: state.appointmentStore.vitalName,
+	vitalValue: state.appointmentStore.vitalValue,
 	procedures: state.appointmentStore.procedures,
 	doctorNotes: state.notesStore.doctorNotes,
 	patientNotes: state.notesStore.patientNotes,
@@ -307,8 +390,13 @@ const mapDispatchToProps = (dispatch) => ({
 	setDoctorNotes: (notes) => { dispatch({ type: 'SET_DOCTOR_NOTES', notes:notes }) },
 	setPatientNotes: (notes) => { dispatch({ type: 'SET_PATIENT_NOTES', notes:notes }) },
 	searchProcedure: () => { dispatch({ type: 'SEARCH_PROCEDURE' }) },
+	addNewVital: () => { dispatch({ type: 'ADD_NEW_VITAL' }) },
+	addVital: (vital) => { dispatch({ type: 'ADD_VITAL', vital:vital }) },
+	setVitals: (vitals) => { dispatch({ type: 'SET_VITALS', vitals:vitals }) },
 	addProcedure: (procedure) => { dispatch({ type: 'ADD_PROCEDURE', procedure:procedure }) },
 	setProcedures: (procedures) => { dispatch({ type: 'SET_PROCEDURES', procedures:procedures }) },
+	removeVitals: (id) => { dispatch({ type: 'REMOVE_VITAL', id:id }) },
+	removeProcedure: (appointmentId, procedureId) => { dispatch({ type: 'REMOVE_PROCEDURE', appointmentId:appointmentId, procedureId:procedureId }) },
 	setSearchTitle: (title) => { dispatch({ type: 'SET_SEARCH_TITLE', title:title }) },
 	setSearchDescription: (description) => { dispatch({ type: 'SET_SEARCH_DESCRIPTION', description:description }) },
 	setSearchList: (list) => { dispatch({ type: 'SET_SEARCH_LIST', list:list }) },

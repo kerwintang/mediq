@@ -2,12 +2,16 @@
 const defaultState = {
   appointments: [],
   procedures: [],
+  vitals: [],
   loading: false,
   reload: false,
   showAppointmentForm:false,
   showProfileForm:false,
   clinicSchedules:[],
   showProcedureModal:false,
+  showVitalModal:false,
+  vitalName:null,
+  vitalValue:null,
   errors: {}
 }
 
@@ -26,6 +30,13 @@ export default (state=defaultState, action={}) => {
         showProfileForm:false
       }
     }
+    case 'SET_APPOINTMENTS': {
+      return {
+        ...state,
+        appointments: action.appointments
+      }
+    }
+
 
     case 'ADD_APPOINTMENT':{
       var appointments = [];
@@ -38,6 +49,59 @@ export default (state=defaultState, action={}) => {
         appointments: appointments
       }     
     }
+
+    case 'SET_VITALS':{
+      return {
+        ...state,
+        vitals:action.vitals
+      }
+    }
+
+    case 'ADD_VITAL':{
+      var vitals = [];
+      for(var i=0;i<state.vitals.length;i++){
+        vitals.push(state.vitals[i]);
+      }
+      vitals.push(action.vital);
+      return {
+        ...state,
+        vitals: vitals
+      }     
+    }
+
+    case 'REMOVE_VITAL': {
+      var vitals = [];
+      for(var i=0;i<state.vitals.length;i++){
+        if(action.id!=state.vitals[i].id)
+          vitals.push(state.vitals[i]);
+      }
+      return {
+        ...state,
+        vitals: vitals
+      }     
+    }
+
+    case 'SET_VITALS_NAME':{
+      return {
+        ...state,
+        vitalName:action.name
+      }
+    }
+    case 'SET_VITALS_VALUE':{
+      return {
+        ...state,
+        vitalValue:action.value
+      }
+    }
+
+    case 'ADD_NEW_VITAL':{
+      return {
+        ...state,
+        showVitalModal:true
+      }
+    }
+
+
 
     case 'SEARCH_PROCEDURE':{
       return {
@@ -65,9 +129,22 @@ export default (state=defaultState, action={}) => {
       }     
     }
 
+    case 'REMOVE_PROCEDURE': {
+      var procedures = [];
+      for(var i=0;i<state.procedures.length;i++){
+        if(action.procedureId!=state.procedures[i].id)
+          procedures.push(state.procedures[i]);
+      }
+      return {
+        ...state,
+        procedures: procedures
+      }     
+    }
+
     case 'CLOSE_MODAL': {
       return {
         ...state,
+        showVitalModal:false,
         showProcedureModal:false
       }
     }

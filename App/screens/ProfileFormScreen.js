@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { Animated, Easing, Platform, StyleSheet,  Linking, View, Text, TextInput, Image, TouchableWithoutFeedback } from 'react-native';
 import { connect } from 'react-redux';
 import MediqText from '../components/MediqText.js';
-import ProfileForm from '../components/ProfileForm.js';
+import ProfileForm from '../forms/ProfileForm.js';
 import showResults from './ShowResults.js';
 import { client } from '../actions'
 
@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
 
 
 const DumbProfileFormScreen = (props) => (
-	<Animated.View style={{
+	<View style={{
   	    position: 'absolute',
   	    top: 0,
   	    left: 0,
@@ -56,10 +56,9 @@ const DumbProfileFormScreen = (props) => (
   	    borderRadius:10,
   	    flexDirection:'column',
   	    alignItems:'center',
-		transform: [{translateY: props.bounceValue}]
 	}}>
 		<ProfileForm onSubmit={showResults} saveProfile={props.saveProfile} closeProfileForm={props.closeProfileForm} handleFormChange={props.handleFormChange}/>
-	</Animated.View>
+	</View>
 );
 
 
@@ -71,58 +70,9 @@ class ProfileFormScreen extends Component {
 	  constructor(props) { 
 		super(props);
 
-		this.state = {
-			bounceValue: new Animated.Value(1000)
-		}
-
-		this.closeProfileForm = this.closeProfileForm.bind(this)
 		this.saveProfile = this.saveProfile.bind(this)
 	}
 
-	showProfileForm(){
-		Animated.timing(
-			this.state.bounceValue,
-			{
-			  toValue: 0,
-			  easing: Easing.ease,
-			  duration:500
-			}
-		  ).start();
-	}
-
-	showProfileFormQuick(){
-		Animated.timing(
-			this.state.bounceValue,
-			{
-			  toValue: 0,
-			  easing: Easing.ease,
-			  duration:1
-			}
-		  ).start();
-	}
-
-	closeProfileForm(){
-		Animated.timing(
-			this.state.bounceValue,
-			{
-			  toValue:1000,
-			  easing: Easing.ease,
-			  duration:500
-			}
-		  ).start();
-		setTimeout(() => { this.props.closeProfileForm(); },500);
-	}
-
-
-	componentWillReceiveProps(nextProps){
-		if(!this.props.showProfileForm && nextProps.showProfileForm){
-		this.showProfileForm();
-		}
-	}
-
-	componentDidMount(){
-		this.showProfileForm();
-	}
 
 	saveProfile(){
 		if(this.props.profileId){
@@ -130,7 +80,7 @@ class ProfileFormScreen extends Component {
 			{headers:{"x-access-token": this.props.token}}).then((res) => {
 				this.props.saveProfile();
 				this.props.reloadPatientList();
-				this.closeProfileForm();
+				this.props.closeProfileForm();
 			}).catch((err) => {
 				alert("ERROR: "+err);
 				this.closeProfileForm();
@@ -142,19 +92,22 @@ class ProfileFormScreen extends Component {
 				doctorId:this.props.user.id
 			},
 			{headers:{"x-access-token": this.props.token}}).then((res) => {
+				if(this.props.selectPatient){
+					this.props.selectPatient(res.data);
+				}
 				this.props.saveProfile();
 				this.props.reloadPatientList();
-				this.closeProfileForm();
+				this.props.closeProfileForm();
 			}).catch((err) => {
 				alert("ERROR: "+err);
-				this.closeProfileForm();
+				this.props.closeProfileForm();
 			});
 		}
 	}
 
 	render() {
 		return (
-			<DumbProfileFormScreen profile={this.props.profile} bounceValue={this.state.bounceValue} handleFormChange={this.props.saveProfileForm} saveProfile={this.saveProfile} closeProfileForm={this.closeProfileForm}/>
+			<DumbProfileFormScreen profile={this.props.profile} handleFormChange={this.props.saveProfileForm} saveProfile={this.saveProfile} closeProfileForm={this.props.closeProfileForm}/>
 		);
     }
 }
