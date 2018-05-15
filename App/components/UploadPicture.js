@@ -46,15 +46,7 @@ class UploadPicture extends Component {
             name: name,
             type: "image/png"
           }
-          
-          const options = {
-            keyPrefix: "uploads/",
-            bucket: "mediq-assets",
-            region: "ap-southeast-1",
-            accessKey: "AKIAJPFJS6OMBTM5VUDA",
-            secretKey: "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",
-            successActionStatus: 201
-          }
+
           
           RNS3.put(file, options).then(response => {
             if (response.status !== 201){
